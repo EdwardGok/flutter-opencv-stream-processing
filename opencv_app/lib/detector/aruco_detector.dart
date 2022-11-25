@@ -5,46 +5,46 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:native_opencv/native_opencv.dart';
 
-// This class will be used as argument to the init method, since we cant access the bundled assets
-// from an Isolate we must get the marker png from the main thread
+// Esta clase se usará como argumento para el método init, ya que no podemos acceder a los activos incluidos.
+// de un Isolate debemos obtener el marcador png del hilo principal
 class InitRequest {
   SendPort toMainThread;
   ByteData markerPng;
   InitRequest({required this.toMainThread, required this.markerPng});
 }
 
-// this is the class that the main thread will send here asking to invoke a function on ArucoDetector
+// esta es la clase que el hilo principal enviará aquí solicitando invocar una función en ArucoDetector
 class Request {
-  // a correlation id so the main thread will be able to match response with request
+  // una identificación de correlación para que el hilo principal pueda hacer coincidir la respuesta con la solicitud
   int reqId;
   String method;
   dynamic params;
   Request({required this.reqId, required this.method, this.params});
 }
 
-// this is the class that will be sent as a response to the main thread
+// esta es la clase que se enviará como respuesta al hilo principal
 class Response {
   int reqId;
   dynamic data;
   Response({required this.reqId, this.data});
 }
 
-// This is the port that will be used to send data to main thread
+// Este es el puerto que se usará para enviar datos al hilo principal
 late SendPort _toMainThread;
 late _ArucoDetector _detector;
 
 void init(InitRequest initReq) {
-  // Create ArucoDetector
+  // Crear ArucoDetector
   _detector = _ArucoDetector(initReq.markerPng);
 
-  // Save the port on which we will send messages to the main thread
+  // Guarde el puerto en el que enviaremos mensajes al hilo principal
   _toMainThread = initReq.toMainThread;
 
-  // Create a port on which the main thread can send us messages and listen to it
+  // Crear un puerto en el que el hilo principal pueda enviarnos mensajes y escucharlo.
   ReceivePort fromMainThread = ReceivePort();
   fromMainThread.listen(_handleMessage);
 
-  // Send the main thread the port on which it can send us messages
+  // Enviar al hilo principal el puerto en el que puede enviarnos mensajes
   _toMainThread.send(fromMainThread.sendPort);
 }
 
@@ -76,24 +76,24 @@ class _ArucoDetector {
   }
 
   init(ByteData markerPng) async {
-    // Note our c++ init detector code expects marker to be in png format
+    // Tenga en cuenta que el detector de inicio de C++ espera que el marcador esté en formato png
     final pngBytes = markerPng.buffer.asUint8List();
 
-    // init the detector
+    // iniciar el detector
     _nativeOpencv = NativeOpencv();
     _nativeOpencv!.initDetector(pngBytes, 36);
   }
 
   Float32List? detect(CameraImage image, int rotation) {
-    // make sure we have a detector
+    // asegúrese de que tengamos un detector
     if (_nativeOpencv == null) {
       return null;
     }
 
-    // On Android the image format is YUV and we get a buffer per channel,
-    // in iOS the format is BGRA and we get a single buffer for all channels.
-    // So the yBuffer variable on Android will be just the Y channel but on iOS it will be
-    // the entire image
+    // En Android, el formato de imagen es YUV y obtenemos un búfer por canal,
+    // en iOS el formato es BGRA y obtenemos un único búfer para todos los canales.
+    // Entonces, la variable yBuffer en Android será solo el canal Y, pero en iOS será
+    // toda la imagen
     var planes = image.planes;
     var yBuffer = planes[0].bytes;
 

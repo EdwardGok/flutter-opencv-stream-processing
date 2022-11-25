@@ -7,25 +7,25 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
-// Load our C lib
+// Cargue nuestra C lib
 final DynamicLibrary nativeLib =
     Platform.isAndroid ? DynamicLibrary.open("libnative_opencv.so") : DynamicLibrary.process();
 
-// C Functions signatures
+// C Funciones firmas
 typedef _c_version = Pointer<Utf8> Function();
 typedef _c_initDetector = Void Function(Pointer<Uint8> markerPngBytes, Int32 inSize, Int32 bits);
 typedef _c_destroyDetector = Void Function();
 typedef _c_detect = Pointer<Float> Function(
     Int32 width, Int32 height, Int32 rotation, Pointer<Uint8> bytes, Bool isYUV, Pointer<Int32> outCount);
 
-// Dart functions signatures
+// Firmas de funciones de dardo
 typedef _dart_version = Pointer<Utf8> Function();
 typedef _dart_initDetector = void Function(Pointer<Uint8> markerPngBytes, int inSize, int bits);
 typedef _dart_destroyDetector = void Function();
 typedef _dart_detect = Pointer<Float> Function(
     int width, int height, int rotation, Pointer<Uint8> bytes, bool isYUV, Pointer<Int32> outCount);
 
-// Create dart functions that invoke the C funcion
+// Cree funciones de dardo que invoquen la función C
 final _version = nativeLib.lookupFunction<_c_version, _dart_version>('version');
 final _initDetector = nativeLib.lookupFunction<_c_initDetector, _dart_initDetector>('initDetector');
 final _destroyDetector = nativeLib.lookupFunction<_c_destroyDetector, _dart_destroyDetector>('destroyDetector');
@@ -70,12 +70,12 @@ class NativeOpencv {
 
     _imageBuffer ??= malloc.allocate<Uint8>(totalSize);
 
-    // We always have at least 1 plane, on Android it si the yPlane on iOS its the rgba plane
+    // Siempre tenemos al menos 1 avión, en Android es el avión en iOS es el avión rgba
     Uint8List _bytes = _imageBuffer!.asTypedList(totalSize);
     _bytes.setAll(0, yBuffer);
 
     if (Platform.isAndroid) {
-      // Swap u&v buffer for opencv
+      // Cambiar el búfer u&v por opencv
       _bytes.setAll(ySize, vBuffer!);
       _bytes.setAll(ySize + vSize, uBuffer!);
     }

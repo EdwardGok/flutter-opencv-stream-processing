@@ -18,15 +18,15 @@ class ArucoDetectorAsync {
   }
 
   void _initDetectionThread() async {
-    // Create the port on which the detector thread will send us messages and listen to it.
+    // Crea el puerto en el que el hilo detector nos enviará mensajes y escúchalo.
     ReceivePort fromDetectorThread = ReceivePort();
     fromDetectorThread.listen(_handleMessage, onDone: () {
       arThreadReady = false;
     });
 
-    // Spawn a new Isolate using the ArucoDetector.init method as entry point and
-    // the port on which it can send us messages as parameter
-    final bytes = await rootBundle.load('assets/drawable/marker.png');
+    // Genera un nuevo Isolate utilizando el método ArucoDetector.init como punto de entrada y
+    // el puerto en el que puede enviarnos mensajes como parámetro
+    final bytes = await rootBundle.load('assets/drawable/maker.png');
     final initReq = aruco_detector.InitRequest(toMainThread: fromDetectorThread.sendPort, markerPng: bytes);
     _detectorThread = await Isolate.spawn(aruco_detector.init, initReq);
   }

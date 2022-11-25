@@ -33,7 +33,8 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = _camController;
 
-    // App state changed before we got the chance to initialize.
+    // El estado de la aplicación cambió antes de que tuviéramos la
+    // oportunidad de inicializar.
     if (cameraController == null || !cameraController.value.isInitialized) {
       return;
     }
@@ -57,7 +58,7 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
     final cameras = await availableCameras();
     var idx = cameras.indexWhere((c) => c.lensDirection == CameraLensDirection.back);
     if (idx < 0) {
-      log("No Back camera found - weird");
+      log("No se encontró cámara trasera - raro");
       return;
     }
 
@@ -74,7 +75,7 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
       await _camController!.initialize();
       await _camController!.startImageStream((image) => _processCameraImage(image));
     } catch (e) {
-      log("Error initializing camera, error: ${e.toString()}");
+      log("Error al inicializar la cámara, error: ${e.toString()}");
     }
 
     if (mounted) {
@@ -87,30 +88,37 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
       return;
     }
 
-    // calc the scale factor to convert from camera frame coords to screen coords.
-    // NOTE!!!! We assume camera frame takes the entire screen width, if that's not the case
-    // (like if camera is landscape or the camera frame is limited to some area) then you will
-    // have to find the correct scale factor somehow else
+    // calcule el factor de escala para convertir de coordenadas
+    // de cuadro de cámara a coordenadas de pantalla.
+    // ¡¡¡¡NOTA!!!! Suponemos que el marco de la cámara ocupa
+    // todo el ancho de la pantalla, si ese no es el caso
+    // (como si la cámara es horizontal o el marco de la cámara
+    // está limitado a un área), entonces
+    // tiene que encontrar el factor de escala correcto de alguna otra
+    // manera
     if (_camFrameToScreenScale == 0) {
       var w = (_camFrameRotation == 0 || _camFrameRotation == 180) ? image.width : image.height;
       _camFrameToScreenScale = MediaQuery.of(context).size.width / w;
     }
 
-    // Call the detector
+    // llama al detector
     _detectionInProgress = true;
     var res = await _arucoDetector.detect(image, _camFrameRotation);
     _detectionInProgress = false;
     _lastRun = DateTime.now().millisecondsSinceEpoch;
 
-    // Make sure we are still mounted, the background thread can return a response after we navigate away from this
-    // screen but before bg thread is killed
+    // Asegúrese de que todavía estamos montados, el subproceso de
+    // fondo puede devolver una respuesta después de que naveguemos
+    // fuera de este pantalla pero antes de que se elimine el
+    // subproceso bg
     if (!mounted || res == null || res.isEmpty) {
       return;
     }
 
-    // Check that the number of coords we got divides by 8 exactly, each aruco has 8 coords (4 corners x/y)
+    // Comprueba que el número de coordenadas que obtuvimos se divide
+    // por 8 exactamente, cada aruco tiene 8 coordenadas (4 esquinas x/y)
     if ((res.length / 8) != (res.length ~/ 8)) {
-      log('Got invalid response from ArucoDetector, number of coords is ${res.length} and does not represent complete arucos with 4 corners');
+      log('Obtuve una respuesta inválida de ArucoDetector, el número de coordenadas es ${res.length} y no representa arucos completos con 4 esquinas');
       return;
     }
 

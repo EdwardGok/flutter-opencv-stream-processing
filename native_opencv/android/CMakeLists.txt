@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10.2)
 
 # opencv
 set(OpenCV_STATIC ON)
-set(OpenCV_DIR $ENV{OPENCV_ANDROID}/sdk/native/jni)
+set(OpenCV_DIR $ENV{OPENCV_ANDROID}C:/Users/HP/Desktop/proyec/OpenCV-android-sdk/sdk/native/jni)
 find_package (OpenCV REQUIRED)
 
 add_library( # Sets the name of the library.
