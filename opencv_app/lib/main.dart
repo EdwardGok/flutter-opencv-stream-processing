@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:native_opencv/native_opencv.dart';
 import 'package:opencv_app/detection/detection_page.dart';
+import 'package:opencv_app/Create/createImage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,13 +33,23 @@ class HomePage extends StatelessWidget {
     return Container(
       color: Colors.white,
       child: Center(
-        child: ElevatedButton(
-          child: const Text('Camera'),
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
-              return const DetectionPage();
-            }));
-          },
+        child: Column(
+          children: [
+            ElevatedButton(
+              child: const Text('Cámara'),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
+                  return const DetectionPage();
+                }));
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Camera'),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Create()));
+              },
+            ),
+          ],
         ),
       ),
     );
