@@ -28,6 +28,7 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
   bool _detectionInProgress = false;
   List<double> _arucos = List.empty();
   ui.Image? images;
+  bool encontrado=false;
   @override
   void initState() {
     super.initState();
@@ -99,6 +100,7 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
   }
   void _processCameraImage(CameraImage image) async {
     if (_detectionInProgress || !mounted || DateTime.now().millisecondsSinceEpoch - _lastRun < 30) {
+
       return;
     }
 
@@ -126,12 +128,16 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
     // fuera de este pantalla pero antes de que se elimine el
     // subproceso bg
     if (!mounted || res == null || res.isEmpty) {
-      return ;
+      setState(() {
+        encontrado=false;
+      });
+      return;
     }
 
     // Comprueba que el número de coordenadas que obtuvimos se divide
     // por 8 exactamente, cada aruco tiene 8 coordenadas (4 esquinas x/y)
     if ((res.length / 8) != (res.length ~/ 8)) {
+
       log('Obtuve una respuesta inválida de ArucoDetector, el número de coordenadas es ${res.length} y no representa arucos completos con 4 esquinas');
       return;
     }
@@ -139,6 +145,7 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
     // convertir arucos de coordenadas de cuadro de cámara a coordenadas de pantalla
     final arucos = res.map((x) => x * _camFrameToScreenScale).toList(growable: false);
     setState(() {
+      encontrado=true;
       _arucos = arucos;
     });
   }
@@ -150,11 +157,10 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
         child: Text('Loading...'),
       );
     }
-
     return Stack(
       children: [
         CameraPreview(_camController!),
-        DetectionsLayer(
+        encontrado==false?Center():DetectionsLayer(
           arucos: _arucos,
           Image: images,
         )

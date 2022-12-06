@@ -4,8 +4,10 @@ class DetectionsLayer extends StatelessWidget {
   const DetectionsLayer({Key? key, required this.arucos, this.Image}) : super(key: key);
   final List<double> arucos;
   final Image;
+
   @override
   Widget build(BuildContext context) {
+    print(arucos.length);
     return CustomPaint(
       painter: ArucosPainter(arucos: arucos,Image: Image),
     );
@@ -28,7 +30,6 @@ class ArucosPainter extends CustomPainter {
     // Cada aruco son 8 números (4 esquinas * x,y) y las esquinas son a partir de
     // arriba a la izquierda en el sentido de las agujas del reloj
     if(arucos.isEmpty) {
-      canvas.drawCircle(Offset.zero, 1, _paint);
       return;
     }
       final count = arucos.length ~/ 8;
