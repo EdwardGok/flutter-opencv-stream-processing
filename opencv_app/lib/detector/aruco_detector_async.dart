@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:opencv_app/detector/aruco_detector.dart' as aruco_detector;
-
+import 'package:get/get.dart';
+import 'package:opencv_app/getX/modelosGet.dart';
 class ArucoDetectorAsync {
+  Controller controllerg=Get.put(Controller());
   bool arThreadReady = false;
   late Isolate _detectorThread;
   late SendPort _toDetectorThread;
@@ -26,8 +29,8 @@ class ArucoDetectorAsync {
 
     // Genera un nuevo Isolate utilizando el método ArucoDetector.init como punto de entrada y
     // el puerto en el que puede enviarnos mensajes como parámetro
-    final bytes = await rootBundle.load('assets/drawable/maker.png');
-    final initReq = aruco_detector.InitRequest(toMainThread: fromDetectorThread.sendPort, markerPng: bytes);
+    final bytes = await new File(controllerg.pat.toString()).readAsBytes();
+    final initReq = aruco_detector.InitRequest(toMainThread: fromDetectorThread.sendPort, markerPng: bytes.buffer.asByteData());
     _detectorThread = await Isolate.spawn(aruco_detector.init, initReq);
   }
 

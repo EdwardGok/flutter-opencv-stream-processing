@@ -8,24 +8,23 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
 // Cargue nuestra C lib
-final DynamicLibrary nativeLib =
-    Platform.isAndroid ? DynamicLibrary.open("libnative_opencv.so") : DynamicLibrary.process();
+final DynamicLibrary nativeLib = Platform.isAndroid ? DynamicLibrary.open("libnative_opencv.so") : DynamicLibrary.process();
 
-// C Funciones firmas
+// C Funciones
 typedef _c_version = Pointer<Utf8> Function();
 typedef _c_initDetector = Void Function(Pointer<Uint8> markerPngBytes, Int32 inSize, Int32 bits);
 typedef _c_destroyDetector = Void Function();
 typedef _c_detect = Pointer<Float> Function(
     Int32 width, Int32 height, Int32 rotation, Pointer<Uint8> bytes, Bool isYUV, Pointer<Int32> outCount);
 
-// Firmas de funciones de dardo
+// Firmas de funciones de dart
 typedef _dart_version = Pointer<Utf8> Function();
 typedef _dart_initDetector = void Function(Pointer<Uint8> markerPngBytes, int inSize, int bits);
 typedef _dart_destroyDetector = void Function();
 typedef _dart_detect = Pointer<Float> Function(
     int width, int height, int rotation, Pointer<Uint8> bytes, bool isYUV, Pointer<Int32> outCount);
 
-// Cree funciones de dardo que invoquen la función C
+// Cree funciones de dart que invoquen la función C
 final _version = nativeLib.lookupFunction<_c_version, _dart_version>('version');
 final _initDetector = nativeLib.lookupFunction<_c_initDetector, _dart_initDetector>('initDetector');
 final _destroyDetector = nativeLib.lookupFunction<_c_destroyDetector, _dart_destroyDetector>('destroyDetector');

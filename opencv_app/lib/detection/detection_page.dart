@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opencv_app/detection/detections_layer.dart';
 import 'package:opencv_app/detector/aruco_detector_async.dart';
+import 'package:get/get.dart';
+import 'dart:ui' as ui;
 
+import '../getX/modelosGet.dart';
 class DetectionPage extends StatefulWidget {
   const DetectionPage({Key? key}) : super(key: key);
 
@@ -13,6 +19,7 @@ class DetectionPage extends StatefulWidget {
 }
 
 class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserver {
+  Controller controller=Get.put(Controller());
   CameraController? _camController;
   late ArucoDetectorAsync _arucoDetector;
   int _camFrameRotation = 0;
@@ -20,15 +27,15 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
   int _lastRun = 0;
   bool _detectionInProgress = false;
   List<double> _arucos = List.empty();
-
+  ui.Image? images;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance?.addObserver(this);
     _arucoDetector = ArucoDetectorAsync();
     initCamera();
+    loadImage();
   }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = _camController;
@@ -38,14 +45,12 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
     if (cameraController == null || !cameraController.value.isInitialized) {
       return;
     }
-
     if (state == AppLifecycleState.inactive) {
       cameraController.dispose();
     } else if (state == AppLifecycleState.resumed) {
       initCamera();
     }
   }
-
   @override
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
@@ -53,12 +58,11 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
     _camController?.dispose();
     super.dispose();
   }
-
   Future<void> initCamera() async {
     final cameras = await availableCameras();
     var idx = cameras.indexWhere((c) => c.lensDirection == CameraLensDirection.back);
     if (idx < 0) {
-      log("No se encontró cámara trasera - raro");
+      log("No se encontró cámara trasera");
       return;
     }
 
@@ -82,7 +86,17 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
       setState(() {});
     }
   }
-
+  Future loadImage() async{
+    final bytes = await new File(controller.foto.toString()).readAsBytesSync();
+    int h=200,w=200;
+    final codec= await ui.instantiateImageCodec(
+      bytes,
+      targetHeight: h,
+      targetWidth: w,
+    );
+    final images=(await codec.getNextFrame()).image;
+    this.images=images;
+  }
   void _processCameraImage(CameraImage image) async {
     if (_detectionInProgress || !mounted || DateTime.now().millisecondsSinceEpoch - _lastRun < 30) {
       return;
@@ -112,7 +126,7 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
     // fuera de este pantalla pero antes de que se elimine el
     // subproceso bg
     if (!mounted || res == null || res.isEmpty) {
-      return;
+      return ;
     }
 
     // Comprueba que el número de coordenadas que obtuvimos se divide
@@ -122,7 +136,7 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
       return;
     }
 
-    // convert arucos from camera frame coords to screen coords
+    // convertir arucos de coordenadas de cuadro de cámara a coordenadas de pantalla
     final arucos = res.map((x) => x * _camFrameToScreenScale).toList(growable: false);
     setState(() {
       _arucos = arucos;
@@ -142,7 +156,8 @@ class _DetectionPageState extends State<DetectionPage> with WidgetsBindingObserv
         CameraPreview(_camController!),
         DetectionsLayer(
           arucos: _arucos,
-        ),
+          Image: images,
+        )
       ],
     );
   }
